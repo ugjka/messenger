@@ -43,13 +43,13 @@ func TestUnbuffered(t *testing.T) {
 }
 
 func TestBufferedReset(t *testing.T) {
-	var buffer uint = 5
+	var buffer = 5
 	clients := 5
 	wgsub := &sync.WaitGroup{}
 	wgsent := &sync.WaitGroup{}
 	wgreset := &sync.WaitGroup{}
 	wgreset.Add(1)
-	m := New(buffer, false)
+	m := New(uint(buffer), false)
 	mu := &sync.Mutex{}
 	results := make([]interface{}, 0)
 	for i := 0; i < clients; i++ {
@@ -75,14 +75,14 @@ func TestBufferedReset(t *testing.T) {
 		}(i)
 	}
 	wgsub.Wait()
-	for i := 0; i < int(buffer); i++ {
+	for i := 0; i < buffer; i++ {
 		m.Broadcast("test")
 	}
 	m.Reset()
 	wgreset.Done()
 	wgsent.Wait()
-	if len(results) != int(buffer)*clients {
-		t.Errorf("expected %d messages, got %d", int(buffer)*clients, len(results))
+	if len(results) != buffer*clients {
+		t.Errorf("expected %d messages, got %d", buffer*clients, len(results))
 	}
 	for _, v := range results {
 		if v != "test" {
@@ -92,13 +92,13 @@ func TestBufferedReset(t *testing.T) {
 }
 
 func TestBufferedSkip(t *testing.T) {
-	var buffer uint = 5
+	var buffer = 5
 	clients := 5
 	wgsub := &sync.WaitGroup{}
 	wgsent := &sync.WaitGroup{}
 	wgreset := &sync.WaitGroup{}
 	wgreset.Add(1)
-	m := New(buffer, true)
+	m := New(uint(buffer), true)
 	mu := &sync.Mutex{}
 	results := make([]interface{}, 0)
 	for i := 0; i < clients; i++ {
@@ -124,17 +124,17 @@ func TestBufferedSkip(t *testing.T) {
 		}(i)
 	}
 	wgsub.Wait()
-	for i := 0; i < int(buffer); i++ {
+	for i := 0; i < buffer; i++ {
 		m.Broadcast("test")
 	}
-	for i := 0; i < int(buffer)*5; i++ {
+	for i := 0; i < buffer*5; i++ {
 		m.Broadcast("wrong")
 	}
 	m.Reset()
 	wgreset.Done()
 	wgsent.Wait()
-	if len(results) != int(buffer)*clients {
-		t.Errorf("expected %d messages, got %d", int(buffer)*clients, len(results))
+	if len(results) != buffer*clients {
+		t.Errorf("expected %d messages, got %d", buffer*clients, len(results))
 	}
 	for _, v := range results {
 		if v != "test" {
@@ -178,7 +178,6 @@ func TestBlockUnsub(t *testing.T) {
 }
 
 func TestSkipUnsub(t *testing.T) {
-
 	clients := 5
 	wgsub := &sync.WaitGroup{}
 	wgunsub := &sync.WaitGroup{}
@@ -218,7 +217,7 @@ func TestSkipUnsub(t *testing.T) {
 	wgbroad.Wait()
 }
 
-func TestResetKill(t *testing.T) {
+func TestKill(t *testing.T) {
 	clients := 5
 	wgsub := &sync.WaitGroup{}
 	wgkill := &sync.WaitGroup{}
@@ -246,13 +245,13 @@ func TestResetKill(t *testing.T) {
 	wgkill.Wait()
 }
 
-func TestSubKill(t *testing.T) {
+func TestKillSub(t *testing.T) {
 	m := New(0, false)
 	m.Kill()
 	for i := 0; i < 5; i++ {
 		_, err := m.Sub()
 		if err == nil {
-			t.Error("Sub after fail didn't error")
+			t.Error("Sub after kill didn't error")
 		}
 	}
 }
