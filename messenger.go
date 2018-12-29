@@ -105,7 +105,7 @@ func (m *Messenger) Reset() {
 // Kill closes and removes all clients
 // and stops the monitor() goroutine of Messenger,
 // making the Messenger instance unusable.
-// Kill must only be called when all clients have exited.
+// Kill should only be called when all clients have exited.
 func (m *Messenger) Kill() {
 	m.kill <- struct{}{}
 }
@@ -138,7 +138,7 @@ func (m *Messenger) Unsub(client chan interface{}) {
 }
 
 // Broadcast broadcasts a message to all current clients.
-// If a client is not listening and and drop is not set this will block.
+// If a client is not listening and drop is not set this will block.
 func (m *Messenger) Broadcast(msg interface{}) {
 	m.broadcast <- msg
 }
