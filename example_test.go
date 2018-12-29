@@ -15,11 +15,7 @@ func ExampleNew() {
 		wg.Add(1)
 		go func(i int, m *messenger.Messenger) {
 			defer wg.Done()
-			client, err := m.Sub()
-			if err != nil {
-				fmt.Printf("Client %d: %v\n", i, err)
-				return
-			}
+			client := m.Sub()
 			timeout := time.After(time.Millisecond * time.Duration(i*100))
 			for {
 				select {

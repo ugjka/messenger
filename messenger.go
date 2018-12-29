@@ -1,10 +1,6 @@
 // Package messenger provides a simple broadcasting mechanism
 package messenger
 
-import (
-	"fmt"
-)
-
 // Messenger instance. Must be invoked with New().
 type Messenger struct {
 	buffer    int
@@ -105,6 +101,7 @@ func (m *Messenger) Reset() {
 // Kill closes and removes all clients
 // and stops the monitor() goroutine of Messenger,
 // making the Messenger instance unusable.
+// Kill must only called when all clients have quit.
 func (m *Messenger) Kill() {
 	m.kill <- struct{}{}
 }
@@ -112,13 +109,8 @@ func (m *Messenger) Kill() {
 // Sub returns a new client.
 // Clients can block Broadcast() unless drop is set.
 // Clients should check whether the channel is closed or not.
-// Returns an error if its Messenger instance is Killed
-func (m *Messenger) Sub() (client chan interface{}, err error) {
-	sub, ok := <-m.get
-	if !ok {
-		return nil, fmt.Errorf("can't subscribe, messenger killed")
-	}
-	return sub, nil
+func (m *Messenger) Sub() (client chan interface{}) {
+	return <-m.get
 }
 
 // Unsub unsubscribes a client and closes its channel.
