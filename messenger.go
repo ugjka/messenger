@@ -31,22 +31,21 @@ func New(buffer uint, drop bool) *Messenger {
 }
 
 func setup(buffer uint, drop bool) *Messenger {
-	m := &Messenger{}
-	m.buffer = int(buffer)
-	m.drop = drop
-	m.get = make(chan chan interface{})
-	m.del = make(chan chan interface{})
-	m.broadcast = make(chan interface{})
-	m.pool = make(map[chan interface{}]struct{})
-	m.reset = make(chan struct{})
-	m.kill = make(chan struct{})
-	return m
+	return &Messenger{
+		buffer:    int(buffer),
+		drop:      drop,
+		get:       make(chan chan interface{}),
+		del:       make(chan chan interface{}),
+		broadcast: make(chan interface{}),
+		pool:      make(map[chan interface{}]struct{}),
+		reset:     make(chan struct{}),
+		kill:      make(chan struct{}),
+	}
 }
 
 // For testing
 func newNoMonitor(buffer uint, drop bool) *Messenger {
-	m := setup(buffer, drop)
-	return m
+	return setup(buffer, drop)
 }
 
 // Main loop where all the action happens.
