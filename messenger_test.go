@@ -17,7 +17,10 @@ func TestUnbuffered(t *testing.T) {
 		wgsub.Add(1)
 		wgsent.Add(1)
 		go func(i int) {
-			client := m.Sub()
+			client, err := m.Sub()
+			if err != nil {
+				t.FailNow()
+			}
 			wgsub.Done()
 			value := <-client
 			mu.Lock()
@@ -53,7 +56,10 @@ func TestBufferedReset(t *testing.T) {
 		wgsub.Add(1)
 		wgsent.Add(1)
 		go func(i int) {
-			client := m.Sub()
+			client, err := m.Sub()
+			if err != nil {
+				t.FailNow()
+			}
 			wgsub.Done()
 			wgreset.Wait()
 			for {
@@ -99,7 +105,10 @@ func TestBufferedSkip(t *testing.T) {
 		wgsub.Add(1)
 		wgsent.Add(1)
 		go func(i int) {
-			client := m.Sub()
+			client, err := m.Sub()
+			if err != nil {
+				t.FailNow()
+			}
 			wgsub.Done()
 			wgreset.Wait()
 			for {
@@ -145,7 +154,10 @@ func TestBlockUnsub(t *testing.T) {
 	for i := 0; i < clients; i++ {
 		wgsub.Add(1)
 		go func(i int) {
-			client := m.Sub()
+			client, err := m.Sub()
+			if err != nil {
+				t.FailNow()
+			}
 			wgsub.Done()
 			wgunsub.Wait()
 			m.Unsub(client)
@@ -177,7 +189,10 @@ func TestSkipUnsub(t *testing.T) {
 	for i := 0; i < clients; i++ {
 		wgsub.Add(1)
 		go func(i int) {
-			client := m.Sub()
+			client, err := m.Sub()
+			if err != nil {
+				t.FailNow()
+			}
 			wgsub.Done()
 			wgunsub.Wait()
 			m.Unsub(client)
@@ -211,7 +226,10 @@ func TestKill(t *testing.T) {
 		wgsub.Add(1)
 		wgkill.Add(1)
 		go func(i int) {
-			client := m.Sub()
+			client, err := m.Sub()
+			if err != nil {
+				t.FailNow()
+			}
 			wgsub.Done()
 			for {
 				_, ok := <-client
@@ -225,4 +243,15 @@ func TestKill(t *testing.T) {
 	wgsub.Wait()
 	m.Kill()
 	wgkill.Wait()
+}
+
+func TestKillSub(t *testing.T) {
+	m := New(0, false)
+	m.Kill()
+	for i := 0; i < 5; i++ {
+		_, err := m.Sub()
+		if err == nil {
+			t.Error("Sub after kill didn't error")
+		}
+	}
 }
