@@ -124,7 +124,8 @@ func (m *Messenger) Kill() {
 // Sub returns a new client.
 // Clients can block Broadcast() unless drop is set.
 // Clients should check whether the channel is closed or not.
-// Returns an error if its Messenger instance is Killed
+// Returns an error if its Messenger instance is Killed.
+// You can ignore the err if you never intend to use Kill()
 func (m *Messenger) Sub() (client chan interface{}, err error) {
 	select {
 	case sub := <-m.get:
