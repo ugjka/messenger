@@ -256,17 +256,6 @@ func TestKillSub(t *testing.T) {
 	}
 }
 
-func TestKillUnsub(t *testing.T) {
-	m := New(0, false)
-	client, err := m.Sub()
-	if err != nil {
-		t.Error("sub failed")
-		t.FailNow()
-	}
-	m.Kill()
-	m.Unsub(client)
-}
-
 func TestAfterKill(t *testing.T) {
 	tt := []struct {
 		buf  uint
@@ -281,6 +270,7 @@ func TestAfterKill(t *testing.T) {
 		m := New(v.buf, v.drop)
 		client, _ := m.Sub()
 		m.Kill()
+		// These should not block
 		m.Kill()
 		m.Unsub(client)
 		m.Sub()
