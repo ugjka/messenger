@@ -2,6 +2,7 @@ package messenger_test
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -9,25 +10,29 @@ import (
 )
 
 func ExampleNew() {
+	log.SetFlags(log.Lmicroseconds)
+	log.SetPrefix("time ")
 	m := messenger.New(0, false)
 	wg := &sync.WaitGroup{}
 	for i := 1; i <= 5; i++ {
 		wg.Add(1)
 		go func(i int, m *messenger.Messenger) {
 			defer wg.Done()
+			time.Sleep(time.Millisecond * time.Duration(i*20))
 			client, err := m.Sub()
 			if err != nil {
-				fmt.Printf("Client %d: %v\n", i, err)
+				log.Printf("Client %d: %v\n", i, err)
 				return
 			}
+			log.Printf("Client %d subscribed\n", i)
 			timeout := time.After(time.Millisecond * time.Duration(i*100))
 			for {
 				select {
 				case msg := <-client:
-					fmt.Printf("Client %d got message: %s\n", i, msg)
+					log.Printf("Client %d got message: %s\n", i, msg)
 				case <-timeout:
 					m.Unsub(client)
-					fmt.Printf("Client %d unsubscribed\n", i)
+					log.Printf("Client %d unsubscribed\n", i)
 					return
 				}
 			}
