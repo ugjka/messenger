@@ -268,12 +268,15 @@ func TestKillUnsub(t *testing.T) {
 }
 
 func TestAfterKill(t *testing.T) {
-	m := New(0, false)
-	client, _ := m.Sub()
-	m.Kill()
-	m.Kill()
-	m.Unsub(client)
-	m.Sub()
-	m.Broadcast("test")
-	m.Reset()
+	tt := []bool{true, false}
+	for _, v := range tt {
+		m := New(0, v)
+		client, _ := m.Sub()
+		m.Kill()
+		m.Kill()
+		m.Unsub(client)
+		m.Sub()
+		m.Broadcast("test")
+		m.Reset()
+	}
 }
