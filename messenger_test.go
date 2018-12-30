@@ -255,3 +255,25 @@ func TestKillSub(t *testing.T) {
 		}
 	}
 }
+
+func TestKillUnsub(t *testing.T) {
+	m := New(0, false)
+	client, err := m.Sub()
+	if err != nil {
+		t.Error("sub failed")
+		t.FailNow()
+	}
+	m.Kill()
+	m.Unsub(client)
+}
+
+func TestAfterKill(t *testing.T) {
+	m := New(0, false)
+	client, _ := m.Sub()
+	m.Kill()
+	m.Kill()
+	m.Unsub(client)
+	m.Sub()
+	m.Broadcast("test")
+	m.Reset()
+}
