@@ -268,9 +268,17 @@ func TestKillUnsub(t *testing.T) {
 }
 
 func TestAfterKill(t *testing.T) {
-	tt := []bool{true, false}
+	tt := []struct {
+		buf  uint
+		drop bool
+	}{
+		{0, true},
+		{0, false},
+		{1, true},
+		{1, false},
+	}
 	for _, v := range tt {
-		m := New(0, v)
+		m := New(v.buf, v.drop)
 		client, _ := m.Sub()
 		m.Kill()
 		m.Kill()
