@@ -148,11 +148,13 @@ func TestBlockUnsub(t *testing.T) {
 	wgsub := &sync.WaitGroup{}
 	wgunsub := &sync.WaitGroup{}
 	wgunsub.Add(1)
+	wgexit := &sync.WaitGroup{}
 	m := newNoMonitor(0, false)
 	m.blocked = make(chan interface{})
 	go m.monitor()
 	for i := 0; i < clients; i++ {
 		wgsub.Add(1)
+		wgexit.Add(1)
 		go func(i int) {
 			client, err := m.Sub()
 			if err != nil {
@@ -161,6 +163,7 @@ func TestBlockUnsub(t *testing.T) {
 			wgsub.Done()
 			wgunsub.Wait()
 			m.Unsub(client)
+			wgexit.Done()
 		}(i)
 	}
 	wgsub.Wait()
@@ -175,6 +178,7 @@ func TestBlockUnsub(t *testing.T) {
 	<-m.blocked
 	wgunsub.Done()
 	wgbroad.Wait()
+	wgexit.Wait()
 }
 
 func TestSkipUnsub(t *testing.T) {
@@ -182,12 +186,14 @@ func TestSkipUnsub(t *testing.T) {
 	wgsub := &sync.WaitGroup{}
 	wgunsub := &sync.WaitGroup{}
 	wgunsub.Add(1)
+	wgexit := &sync.WaitGroup{}
 	buffer := 4
 	m := newNoMonitor(uint(buffer), true)
 	m.chanlens = make(chan []int)
 	go m.monitor()
 	for i := 0; i < clients; i++ {
 		wgsub.Add(1)
+		wgexit.Add(1)
 		go func(i int) {
 			client, err := m.Sub()
 			if err != nil {
@@ -196,6 +202,7 @@ func TestSkipUnsub(t *testing.T) {
 			wgsub.Done()
 			wgunsub.Wait()
 			m.Unsub(client)
+			wgexit.Done()
 		}(i)
 	}
 	wgsub.Wait()
@@ -207,14 +214,13 @@ func TestSkipUnsub(t *testing.T) {
 		}
 		wgbroad.Done()
 	}()
+	wgbroad.Wait()
 	expected := []int{4, 4, 4, 4, 4}
-	for {
-		if reflect.DeepEqual(<-m.chanlens, expected) {
-			break
-		}
+	if !reflect.DeepEqual(<-m.chanlens, expected) {
+		t.Errorf("chan lenghts do not match")
 	}
 	wgunsub.Done()
-	wgbroad.Wait()
+	wgexit.Wait()
 }
 
 func TestKill(t *testing.T) {
@@ -266,8 +272,8 @@ func TestAfterKill(t *testing.T) {
 		{1, true},
 		{1, false},
 	}
-	for _, v := range tt {
-		m := New(v.buf, v.drop)
+	for _, tc := range tt {
+		m := New(tc.buf, tc.drop)
 		client, _ := m.Sub()
 		m.Kill()
 		// These should not block
