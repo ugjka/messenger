@@ -3,7 +3,10 @@ package messenger
 
 import (
 	"fmt"
+	"sync/atomic"
 )
+
+var subscriberCount = new(int64)
 
 // Messenger instance. Must be invoked with New().
 type Messenger struct {
@@ -16,6 +19,7 @@ type Messenger struct {
 	reset     chan struct{}
 	kill      chan struct{}
 	killed    chan struct{}
+	len       chan struct{}
 	blocked   chan interface{} //for testing
 	chanlens  chan []int       //for testing
 }
@@ -42,6 +46,7 @@ func setup(buffer uint, drop bool) *Messenger {
 		reset:     make(chan struct{}),
 		kill:      make(chan struct{}),
 		killed:    make(chan struct{}),
+		len:       make(chan struct{}),
 	}
 	if buffer == 0 {
 		m.drop = false
@@ -59,6 +64,8 @@ func (m *Messenger) monitor() {
 	client := make(chan interface{}, m.buffer)
 	for {
 		select {
+		case <-m.len:
+			atomic.StoreInt64(subscriberCount, int64(len(m.pool)))
 		case m.get <- client:
 			m.pool[client] = struct{}{}
 			client = make(chan interface{}, m.buffer)
@@ -163,4 +170,10 @@ func (m *Messenger) Broadcast(msg interface{}) {
 	case <-m.killed:
 	case m.broadcast <- msg:
 	}
+}
+
+//Len gets the subcriber count
+func (m *Messenger) Len() int64 {
+	m.len <- struct{}{}
+	return atomic.LoadInt64(subscriberCount)
 }

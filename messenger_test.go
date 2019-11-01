@@ -284,3 +284,15 @@ func TestAfterKill(t *testing.T) {
 		m.Reset()
 	}
 }
+
+func TestLen(t *testing.T) {
+	m := New(0, false)
+	m.Sub()
+	m.Sub()
+	c, _ := m.Sub()
+	m.Unsub(c)
+	m.Sub()
+	if m.Len() != 3 {
+		t.Errorf("expected len to be 2 got %d", m.Len())
+	}
+}
