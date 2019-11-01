@@ -169,7 +169,7 @@ func (m *Messenger) Broadcast(msg interface{}) {
 	}
 }
 
-//Len gets the subcriber count
+//Len gets the subscriber count
 func (m *Messenger) Len() int {
 	m.len <- 0
 	return <-m.len
