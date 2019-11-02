@@ -171,6 +171,10 @@ func (m *Messenger) Broadcast(msg interface{}) {
 
 //Len gets the subscriber count
 func (m *Messenger) Len() int {
-	m.len <- 0
-	return <-m.len
+	select {
+	case m.len <- 0:
+		return <-m.len
+	case <-m.killed:
+		return 0
+	}
 }
